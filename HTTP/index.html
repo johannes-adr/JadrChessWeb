@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="stylesheet.css">
+    <title>JadrChess</title>
+
+    <script defer src="main.js"></script>
+    <script defer src="ChessField.js"></script>
+    <script defer src="ChessBoard.js"></script>
+    <script defer src="ChessRow.js"></script>
+    <script defer src="pagegenerator.js"></script>
+    <script defer src="ChessKI.js"></script>
+    <script defer src="ChessWebSocket.js"></script>
+    <script defer src="utils.js"></script>
+    <script defer src="BoardColor.js"></script>
+</head>
+
+<body class="hstack disableselect">
+    <div id="popup">
+        <img src="assets/close.svg" onclick="closePopup()" id="closePopup" class="imgbutton">
+
+        <div class="vstack">
+            <div class="hstack">
+                <div class="vstack colorVstack">
+                    White
+                    <div class="whiteFieldPreview"></div>
+                    <input type="color" id="whiteFieldPicker">
+                </div>
+                <div class="vstack colorVstack">
+                    Black
+                    <div class="blackFieldPreview"></div>
+                    <input type="color" id="blackFieldPicker">
+                </div>
+
+
+                <table>
+                    <tr>
+                        <td></td>
+                        <th>Avaible</th>
+                        <th>Last move</th>
+                    </tr>
+                    <tr>
+                        <th>White</th>
+                        <td>
+                            <div class="whiteFieldPreview avaibleMovePreview"></div>
+                        </td>
+                        <td>
+                            <div class="whiteFieldPreview lastMovePreview"></div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>Black</th>
+                        <td>
+                            <div class="blackFieldPreview avaibleMovePreview"></div>
+                        </td>
+                        <td>
+                            <div class="blackFieldPreview lastMovePreview"></div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td></td>
+                        <td><input type="color" id="avaiblemoveFieldPicker"></td>
+                        <td><input type="color" id="lastmoveFieldPicker"></td>
+                    </tr>
+                </table>
+
+            </div>
+            <br><br>
+            <span class="hstack">
+                <textarea id="boardColorcode"></textarea><button id="importBoardColor">import</button><button id="boardColorReset">reset</button>
+            </span>
+            <br>
+            <h2>Collection</h2>
+            <div id="colorBoardList">
+
+            </div>
+            
+        </div>
+    </div>
+    <div id="alertBox" class="vstack">
+        <span id="alertBoxTXT">This is the default alert box</span>
+        <button onclick="hidealert()">OK</button>
+    </div>
+    <div class="hstack" style="align-items: flex-start;">
+
+        <div class="vstack siteTable" id="servertable">
+            <span class="h1">Server data</span>
+            <button onclick="createLobby()" id="createLobby">Create lobby</button>
+        </div>
+        <div class="vstack">
+            <div class="vstack" id="board"></div>
+            <div class="hstack" style="justify-content: space-between;" id="boardSettingsBar">
+                <div class="hstack">
+                    <div onclick="chessBoard.rotate()"  class="svgIcon iconButton"><img
+                            src="assets/rotate_right_black_24dp.svg" draggable="false"></div>
+                    <div onclick="openPopup()"  class="svgIcon iconButton"><img
+                            src="assets/palette_black_24dp.svg" draggable="false"></div>
+
+                </div>
+                <div class="hstack">
+                    <div onclick="chessBoard.bigger()" class="svgIcon iconButton"><img
+                            src="assets/add_black_24dp.svg" draggable="false"></div>
+                    <div onclick="chessBoard.smaller()" class="svgIcon iconButton"><img
+                            src="assets/remove_black_24dp.svg" draggable="false"></div>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="vstack siteTable" id="info">
+            <div class="hstack">
+                <span class="ball" id="turnColor"></span><span id="turnText"></span>
+            </div>
+            <div id="moves">
+                <span></span><span>White</span><span>Black</span>
+            </div>
+            <div id="boardInfo" class="infodata">
+
+            </div>
+        </div>
+    </div>
+
+
+    </div>
+    <div id="cover"></div>
+</body>
+
+</html>
+<!-- <script>
+    let scripts = ["main","ChessField","ChessBoard","ChessRow","pagegenerator","ChessKI"]
+    let date = new Date().getTime();
+    scripts.forEach(s=>{
+        let el = document.createElement("script");
+        el.src = s+".js?req="+date;
+        document.head.appendChild(el);
+    })
+</script> -->
