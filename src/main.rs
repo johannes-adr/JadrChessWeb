@@ -1,6 +1,7 @@
+use chess::ChessBoard;
 use json::{object, JsonValue};
 use lobby::Lobby;
-use rocket::{fs::NamedFile, State};
+use rocket::{fs::NamedFile, State, Rocket, Build};
 use std::{
     collections::HashMap,
     path::{Path, PathBuf},
@@ -37,7 +38,6 @@ async fn files(
             return Err("Lobby not found".to_owned());
         }
     }
-    println!("{:?}",file);
     let mut file = file;
     if file.to_str().unwrap().len() == 0{
         file = Path::new("index.html").to_path_buf();
@@ -71,6 +71,7 @@ impl WebSocketConnection{
 
 impl Handler for WebSocketConnection {
     fn on_message(&mut self, msg: ws::Message) -> ws::Result<()> {
+        println!("Got message");
         let msg = msg.as_text();
         if msg.is_err(){
             eprintln!("Error casting websocket message as text{}",msg.err().unwrap());
@@ -128,15 +129,22 @@ impl Handler for WebSocketConnection {
     }
 }
 
+
+fn debug(){
+    let board = ChessBoard::default();
+    println!("{:?}",board);
+    process::exit(0);
+}
+
 #[launch]
-fn rocket() -> _ {
+fn rocket() -> _{
+    debug();
     let lobbys: LobbyMap = Arc::new(Mutex::new(HashMap::new()));
     let lobbys_c = lobbys.clone();
     thread::spawn(move || {
         println!("Starting Websocket at port 7721");
         let res = listen("localhost:7721", |out| {
             WebSocketConnection::new(out,lobbys_c.clone())
-            
         });
         if res.is_err() {
             println!("{}", res.err().unwrap());

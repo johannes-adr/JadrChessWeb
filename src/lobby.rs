@@ -35,7 +35,7 @@ impl Lobby {
     pub fn default() -> Self {
         Self {
             lobby_id: Uuid::new_v4().to_hyphenated().to_string(),
-            board: ChessBoard::defualt(),
+            board: ChessBoard::default(),
             users: 0,
             connections: HashMap::new(),
         }
@@ -66,13 +66,22 @@ impl Lobby {
             lobbyid: self.lobby_id(),
             status: "black",
         };
-        sender.send(json::stringify(obj));
+        _=sender.send(json::stringify(obj));
+        
         self.send_system_message(format!("{} joined the lobby","black").to_string(), SystemMessageType::Success);
         self.add_connection(sender);
     }
 
-    pub fn add_connection(&mut self, sender: Sender){
+    fn send_board_to_player(&self, sender: &Sender){
+        let fen = self.board.to_fen();
+        _=sender.send(json::stringify(object!(
+            "type": "fenMap",
+            "fen": fen
+        )));
+    }
 
+    pub fn add_connection(&mut self, sender: Sender){
+        self.send_board_to_player(&sender);
         self.connections.insert(sender.connection_id(),sender);
     }
 }
