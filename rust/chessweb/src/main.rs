@@ -1,4 +1,3 @@
-use chess::ChessBoard;
 use json::{object, JsonValue};
 use lobby::Lobby;
 use rocket::{fs::NamedFile, State, Rocket, Build};
@@ -10,10 +9,8 @@ use std::{
     thread::{self}, fmt,
 };
 use ws::{listen, Handler, Sender};
-
-mod chess;
 mod lobby;
-
+use chess_rs::ChessBoard;
 type LobbyMap = Arc<Mutex<HashMap<String, Lobby>>>;
 
 #[macro_use]
@@ -130,15 +127,10 @@ impl Handler for WebSocketConnection {
 }
 
 
-fn debug(){
-    let board = ChessBoard::default();
-    println!("{:?}",board);
-    process::exit(0);
-}
+
 
 #[launch]
 fn rocket() -> _{
-    debug();
     let lobbys: LobbyMap = Arc::new(Mutex::new(HashMap::new()));
     let lobbys_c = lobbys.clone();
     thread::spawn(move || {

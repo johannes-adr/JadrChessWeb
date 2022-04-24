@@ -3,9 +3,7 @@ use std::{sync::{Weak, Arc, Mutex}, collections::HashMap, fmt};
 use json::object;
 use uuid::Uuid;
 use ws::Sender;
-
-use crate::{chess::ChessBoard, WebSocketConnection};
-
+// use crate::{chess::ChessBoard};
 enum SystemMessageType{
     Info,Error,Warning,Success
 }

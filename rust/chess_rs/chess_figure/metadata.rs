@@ -1,4 +1,12 @@
-use super::Color;
+use super::figure_type::ChessFigureType;
+
+pub struct ChessFigureMetaData {
+    pub value: u16,
+    pub chess_figure: ChessFigureType,
+    pub fen_char: char,
+    pub value_map: [i8; 64],
+}
+
 impl ChessFigureMetaData {
     pub fn from_fen(c: char) -> Option<ChessFigureMetaData> {
         for cfm in CHESS_FIGURE_META_DATAS {
@@ -8,83 +16,20 @@ impl ChessFigureMetaData {
         }
         return None;
     }
-}
 
-#[derive(Debug, Clone, Copy)]
-pub enum ChessFigure {
-    Pawn(Color),
-    Knight(Color),
-    Bishop(Color),
-    Rook(Color),
-    Queen(Color),
-    King(Color),
-}
-
-impl ChessFigure {
-    pub fn static_stats(&self) -> &ChessFigureMetaData {
-        match self {
-            Self::Pawn(_) => &PAWN_DATA,
-            Self::Knight(_) => &KNIGHT_DATA,
-            Self::Bishop(_) => &BISHOP_DATA,
-            Self::Rook(_) => &ROOK_DATA,
-            Self::Queen(_) => &QUEEN_DATA,
-            Self::King(_) => &KING_DATA,
+    pub fn from_figure_type(figure: ChessFigureType) -> &'static ChessFigureMetaData{
+            match figure {
+                ChessFigureType::Pawn => &PAWN_DATA,
+                ChessFigureType::Knight => &KNIGHT_DATA,
+                ChessFigureType::Bishop=> &BISHOP_DATA,
+                ChessFigureType::Rook => &ROOK_DATA,
+                ChessFigureType::Queen=> &QUEEN_DATA,
+                ChessFigureType::King=> &KING_DATA,
+            }
         }
     }
 
-    pub fn fen(&self) -> char{
-        let c = match self{
-            ChessFigure::Pawn(c) => c,
-            ChessFigure::Knight(c) => c,
-            ChessFigure::Bishop(c) =>c,
-            ChessFigure::Rook(c) => c,
-            ChessFigure::Queen(c) =>c,
-            ChessFigure::King(c) =>c,
-        };
-        let s = self.static_stats();
-        match c{
-            Color::Black => s.fen_char,
-            Color::White => s.fen_char.to_ascii_uppercase(),
-        }
-    }
 
-    pub fn from_fen(fen: char) -> Option<Self> {
-        let t = ChessFigureMetaData::from_fen(fen.to_ascii_lowercase());
-        if t.is_none() {
-            return None;
-        }
-        let color = char::is_ascii_uppercase(&fen);
-        let c;
-        if color {
-            c = Color::White;
-        } else {
-            c = Color::Black
-        }
-
-        let t = t.unwrap();
-        let ret = match t.chess_figure {
-            ChessFigure::Pawn(_) => ChessFigure::Pawn(c),
-            ChessFigure::Knight(_) => ChessFigure::Knight(c),
-            ChessFigure::Bishop(_) => ChessFigure::Bishop(c),
-            ChessFigure::Rook(_) => ChessFigure::Rook(c),
-            ChessFigure::Queen(_) => ChessFigure::Queen(c),
-            ChessFigure::King(_) => ChessFigure::King(c),
-        };
-        return Some(ret);
-    }
-}
-
-
-
-
-
-
-struct ChessFigureMetaData {
-    value: u16,
-    chess_figure: ChessFigure,
-    fen_char: char,
-    value_map: [i8; 64],
-}
 
 const CHESS_FIGURE_META_DATAS: [ChessFigureMetaData; 6] = [
     PAWN_DATA,
@@ -96,7 +41,7 @@ const CHESS_FIGURE_META_DATAS: [ChessFigureMetaData; 6] = [
 ];
 
 const PAWN_DATA: ChessFigureMetaData = ChessFigureMetaData {
-    chess_figure: ChessFigure::Pawn(Color::Black),
+    chess_figure: ChessFigureType::Pawn,
     value: 100,
     fen_char: 'p',
     value_map: [
@@ -106,7 +51,7 @@ const PAWN_DATA: ChessFigureMetaData = ChessFigureMetaData {
     ],
 };
 const KNIGHT_DATA: ChessFigureMetaData = ChessFigureMetaData {
-    chess_figure: ChessFigure::Knight(Color::Black),
+    chess_figure: ChessFigureType::Knight,
     value: 300,
     fen_char: 'n',
     value_map: [
@@ -117,7 +62,7 @@ const KNIGHT_DATA: ChessFigureMetaData = ChessFigureMetaData {
 };
 
 const BISHOP_DATA: ChessFigureMetaData = ChessFigureMetaData {
-    chess_figure: ChessFigure::Bishop(Color::Black),
+    chess_figure: ChessFigureType::Bishop,
     value: 300,
     fen_char: 'b',
     value_map: [
@@ -127,7 +72,7 @@ const BISHOP_DATA: ChessFigureMetaData = ChessFigureMetaData {
     ],
 };
 const ROOK_DATA: ChessFigureMetaData = ChessFigureMetaData {
-    chess_figure: ChessFigure::Rook(Color::Black),
+    chess_figure: ChessFigureType::Rook,
     value: 500,
     fen_char: 'r',
     value_map: [
@@ -138,7 +83,7 @@ const ROOK_DATA: ChessFigureMetaData = ChessFigureMetaData {
 };
 
 const QUEEN_DATA: ChessFigureMetaData = ChessFigureMetaData {
-    chess_figure: ChessFigure::Queen(Color::Black),
+    chess_figure: ChessFigureType::Queen,
     value: 900,
     fen_char: 'q',
     value_map: [
@@ -148,7 +93,7 @@ const QUEEN_DATA: ChessFigureMetaData = ChessFigureMetaData {
     ],
 };
 const KING_DATA: ChessFigureMetaData = ChessFigureMetaData {
-    chess_figure: ChessFigure::King(Color::Black),
+    chess_figure: ChessFigureType::King,
     value: u16::MAX,
     fen_char: 'k',
     value_map: [
