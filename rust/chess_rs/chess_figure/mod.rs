@@ -4,6 +4,7 @@ use self::{figure_type::ChessFigureType, figure_move::{generate_move, Point}};
 pub mod metadata;
 pub mod figure_type;
 pub mod figure_move;
+pub mod aware_array;
 use figure_move::Move;
 
 #[derive(Debug, Clone, Copy)]

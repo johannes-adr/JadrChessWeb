@@ -79,6 +79,10 @@ pub struct ChessBoard {
     castle: Castleable,
     board: [[Option<ChessFigure>; 8]; 8],
 }
+struct TeamFigures{
+    vec: [ChessFigure;16]
+}
+
 const DEFAULT_FEN: &str = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 impl ChessBoard {
     pub fn empty() -> Self {
@@ -157,7 +161,7 @@ impl ChessBoard {
     //     self.board[y][x] = Some(*f);
     // }
 
-    pub fn set_field(&mut self,x: usize, y: usize, f: Option<ChessFigure>){
+    fn set_field(&mut self,x: usize, y: usize, f: Option<ChessFigure>){
         self.board[y][x] = f;
     }
 
@@ -189,7 +193,15 @@ impl ChessBoard {
         }
     }
 
-    pub fn get_moves(&self) -> Vec<Move>{
+    pub fn move_figure(&self,figure: &mut ChessFigure, x: usize, y: usize){
+        let start = figure.get_pos();
+        self.set_field(start.x(), start.y(), None);
+        figure.set_pos(x, y);
+        self.set_field(x, y, figure);
+
+    }
+
+    pub fn get_moves_for_side(&self) -> Vec<Move>{
         let mut moves = Vec::with_capacity(100);
         for row in self.board{
             for field in row{
