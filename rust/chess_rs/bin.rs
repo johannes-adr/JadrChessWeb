@@ -11,9 +11,35 @@ pub mod chess_board;
 mod utils;
 fn main(){
     let mut b = chess_board::ChessBoard::default();
-    // let before = Instant::now();
-    // println!("{}",make_moves_rec(&mut b, 3, Color::White));
-    // print!("Elapsed time: {:.2?}", before.elapsed())
+    let before = Instant::now();
+    fn play_rec_recursive(c: Color, b: &mut ChessBoard,mut depth: u8) -> usize{
+        depth-=1;
+        let moves = b.get_moves_for_side(c);
+        let mut count = 0;
+        let cother = if c.equals(Color::Black){
+            Color::White
+        }else{
+            Color::Black
+        };
+        for m in moves{
+            
+            // timer(200).await;
+            let undo = m.make_move(b);
+            // print(b.as_str());
+            
+            if depth > 0{
+                count += play_rec_recursive(cother, b, depth);
+            }else{
+                count+=1;
+            }
+            // timer(200).await;
+            undo.undo(b);
+        }
+        return count;
+    }
+    let moves = play_rec_recursive(color::Color::White, &mut b, 5);
+    println!("Moves done: {}",moves.to_string());
+    print!("Elapsed time: {:.2?}", before.elapsed())
 }
 
 // fn make_moves_rec(cb: &mut ChessBoard, depth: u8, side: Color) -> usize{

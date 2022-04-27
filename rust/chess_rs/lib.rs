@@ -15,7 +15,7 @@ use async_recursion::async_recursion;
 use chess_board::ChessBoard;
 use jdrcanvas::*;
 use js_sys::Promise;
-use once_cell::sync::Lazy;
+use color::Color;
 use utils::rgb;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen_futures::{spawn_local, JsFuture, future_to_promise};
@@ -79,31 +79,33 @@ pub async fn play_rec(board: RcBoard) {
     let mut b = unsafe{val.get().as_mut()}.unwrap();
 
     #[async_recursion(?Send)]
-    async fn play_rec_recursive(c: color::Color, b: &mut ChessBoard, depth: u8) -> usize{
+    async fn play_rec_recursive(c: Color, b: &mut ChessBoard,mut depth: u8) -> usize{
+        depth-=1;
         let moves = b.get_moves_for_side(c);
         let mut count = 0;
-        if depth == 0{
-            return 0;
-        }
-        let cother = if c.equals(color::Color::Black){
-            color::Color::White
+        let cother = if c.equals(Color::Black){
+            Color::White
         }else{
-            color::Color::Black
+            Color::Black
         };
         for m in moves{
             
-            timer(200).await;
+            // timer(200).await;
             let undo = m.make_move(b);
             // print(b.as_str());
-            count+=1;
-            count += play_rec_recursive(cother, b, depth-1).await;
-            timer(200).await;
+            
+            if depth > 0{
+                count += play_rec_recursive(cother, b, depth).await;
+            }else{
+                count+=1;
+            }
+            // timer(200).await;
             undo.undo(b);
         }
         return count;
     }
-    let moves = play_rec_recursive(color::Color::White, &mut b, 2).await;
-    print(moves.to_string())
+    let moves = play_rec_recursive(color::Color::White, &mut b, 4).await;
+    print(format!("Moves done: {}",moves.to_string()))
 }
 
 #[wasm_bindgen]
