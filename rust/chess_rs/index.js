@@ -1,4 +1,4 @@
-import init, { start } from "./pkg/chess_rs.js";
+import init, { start, play_rec } from "./pkg/chess_rs.js";
 const wasm = await init();
 
 function createCanvas(w, h) {
@@ -12,7 +12,9 @@ function createCanvas(w, h) {
     return ctx;
 }
 
-
+export function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
 
 const GAME = start();
 const CANV_2D = createCanvas(GAME.width, GAME.height);
@@ -51,6 +53,14 @@ setInterval(() => {
     CANV_2D.putImageData(WASM_IMG_BUFFER, 0, 0);
 
 }, 1000 / FPS_GOAL);
+console.log(GAME.get_board())
+setTimeout(() => {
+    // console.log(GAME.get_board())
+    // console.log(GAME.get_board())
+    // console.log(GAME.get_board())
+    // GAME.play_rec(500)
+    play_rec(GAME.get_board())
+}, 50)
 
 window.addEventListener("keydown", (ev) => GAME.keyevent(ev.key, true));
 window.addEventListener("keyup", (ev) => GAME.keyevent(ev.key, false));

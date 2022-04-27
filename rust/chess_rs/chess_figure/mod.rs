@@ -7,17 +7,21 @@ pub mod figure_move;
 pub mod aware_array;
 use figure_move::Move;
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone)]
 pub struct ChessFigure{
     figure: ChessFigureType,
     color: Color,
-    pos: Point,
-    already_moved: bool
+    already_moved: bool,
+    pos: Point
 }
 
 impl ChessFigure {
     pub fn figure(&self)-> ChessFigureType{
         self.figure
+    }
+
+    pub fn pos(&self) -> Point{
+        self.pos
     }
 
     pub fn flag_moved(&mut self){
@@ -32,26 +36,15 @@ impl ChessFigure {
         }
     }
 
-    pub fn set_pos(&mut self,x: usize, y: usize){
-        self.pos = Point::new(x, y)
-    }
-
-    pub fn get_pos(&self) -> Point{
-        self.pos
-    }
-
     pub fn color(&self) -> Color{
         self.color
     }
 
-    pub fn from_fen(fen: char, x: usize, y: usize) -> Option<Self> {
+    pub fn from_fen(fen: char, pos: Point) -> Option<Self> {
         if let Some(figure) = ChessFigureType::from_fen(fen.to_ascii_lowercase()){
-            return Some(Self{color: Color::from_char(fen), figure, pos: Point::new(x,y), already_moved: false})
+            return Some(Self{color: Color::from_char(fen), figure, already_moved: false,pos})
         }
         None        
     }
 
-    pub fn get_avaible_moves(&self,board: &ChessBoard) -> Vec<Move>{
-        generate_move(self, board)
-    }
 }

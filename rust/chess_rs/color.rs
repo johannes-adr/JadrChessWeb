@@ -25,6 +25,13 @@ impl Color {
         }
     }
 
+    pub fn id(&self) -> usize{
+        match self {
+            Color::Black => 0,
+            Color::White => 1,
+        }
+    }
+
     pub fn equals(&self, other: Color) -> bool{
         if let Color::Black = other{
             if let Color::Black = self{

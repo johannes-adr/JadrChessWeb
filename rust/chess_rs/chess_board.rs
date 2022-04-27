@@ -1,8 +1,16 @@
 use std::fmt::Write;
 
-use crate::chess_figure::{ChessFigure, figure_move::Move};
+use arrayvec::ArrayVec;
 
-use super::color::Color;
+use crate::{color::Color, chess_figure::{ChessFigure, figure_move::{Point, Move, generate_move}}};
+
+// use crate::chess_figure::{
+//     aware_array::{AwareArray2D, AwareElement},
+//     figure_move::{Move, Point},
+//     ChessFigure, Figure,
+// };
+
+// use super::color::Color;
 
 #[derive(Debug)]
 struct Castleable {
@@ -22,19 +30,19 @@ impl Castleable {
         }
     }
 
-    pub fn to_fen(&self) -> String{
+    pub fn to_fen(&self) -> String {
         let mut s = String::with_capacity(4);
-        if self.white_short{
-            _=s.write_char('K');
+        if self.white_short {
+            _ = s.write_char('K');
         }
-        if self.white_long{
-            _=s.write_char('Q');
+        if self.white_long {
+            _ = s.write_char('Q');
         }
-        if self.black_short{
-            _=s.write_char('k');
+        if self.black_short {
+            _ = s.write_char('k');
         }
-        if self.black_long{
-            _=s.write_char('q');
+        if self.black_long {
+            _ = s.write_char('q');
         }
         return s;
     }
@@ -43,44 +51,14 @@ impl Castleable {
         Self::from_fen("")
     }
 }
-
-pub struct FenBuilder{
-    board: ChessBoard
-}
-
-impl FenBuilder{
-    pub fn new() -> FenBuilder{
-        Self{board: ChessBoard::empty()}
-    }
-
-    pub fn board(&self) -> &ChessBoard {
-        &self.board
-    }
-
-    pub fn set(&mut self, f: ChessFigure) -> &Self{
-        self.board.board[f.get_pos().y()][f.get_pos().x()] = Some(f);
-        self
-    }
-    pub fn set_char(&mut self, fen: char, x: usize, y: usize) -> &Self{
-        self.board.board[y][x] = ChessFigure::from_fen(fen, x, y);
-        self
-    }
-
-    pub fn build(&self) -> String{
-        self.board.to_fen()
-    }
-}
-
+type AwareBoard = [[Option<ChessFigure>;8];8];
 #[derive(Debug)]
 pub struct ChessBoard {
     turns: u32,
     on_turn: Color,
     half_turns: u32,
     castle: Castleable,
-    board: [[Option<ChessFigure>; 8]; 8],
-}
-struct TeamFigures{
-    vec: [ChessFigure;16]
+    board: AwareBoard,
 }
 
 const DEFAULT_FEN: &str = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
@@ -89,10 +67,14 @@ impl ChessBoard {
         Self {
             turns: 0,
             on_turn: Color::White,
-            board: [[Option::None; 8]; 8],
+            board: Default::default(),
             castle: Castleable::default(),
             half_turns: 0,
         }
+    }
+
+    pub fn board(&mut self,)->&mut AwareBoard{
+        &mut self.board
     }
 
     pub fn default() -> Self {
@@ -101,10 +83,10 @@ impl ChessBoard {
         return b;
     }
 
-    pub fn from_fen(fen: &str) -> Result<ChessBoard, String>{
+    pub fn from_fen(fen: &str) -> Result<ChessBoard, String> {
         let mut b = ChessBoard::empty();
         b.load_fen(fen)?;
-        return Ok(b)
+        return Ok(b);
     }
 
     pub fn clear(&self) {}
@@ -112,8 +94,8 @@ impl ChessBoard {
     pub fn load_fen(&mut self, fen: &str) -> core::result::Result<(), String> {
         self.clear();
         let fen_parts: Vec<&str> = fen.split(" ").collect();
-        if fen_parts.len() != 6{
-            return Err("Fen not correct format (Needs to have 6 parts after split)".to_owned())
+        if fen_parts.len() != 6 {
+            return Err("Fen not correct format (Needs to have 6 parts after split)".to_owned());
         }
         let fen_board = fen_parts[0];
         self.on_turn = Color::from_char(
@@ -136,9 +118,9 @@ impl ChessBoard {
                 if c.is_numeric() {
                     x += c.to_digit(10).unwrap() as usize - 1
                 } else {
-                    let f = ChessFigure::from_fen(c,x,y)
+                    let f = ChessFigure::from_fen(c, Point::new(x, y))
                         .ok_or(format!("Error parsing fenchar '{}'", c).to_string())?;
-                    self.board[y][x] = Some(f);
+                    self.board[y][x] = Some(f)
                 }
                 x += 1;
             }
@@ -146,12 +128,8 @@ impl ChessBoard {
         Ok(())
     }
 
-    pub fn get_figure(&self,x: usize, y: usize) -> Option<ChessFigure>{
-        self.board[y][x]
-    }
-
-    pub fn get_field(&mut self, x: usize, y: usize) ->&mut Option<ChessFigure>{
-        &mut self.board[y][x]
+    pub fn get_figure(&self, x: usize, y: usize) -> &Option<ChessFigure> {
+        &self.board[y][x]
     }
 
     // pub fn move_figure(&mut self,x: usize, y: usize, f: &mut ChessFigure){
@@ -160,18 +138,13 @@ impl ChessBoard {
     //     f.set_pos(x, y);
     //     self.board[y][x] = Some(*f);
     // }
-
-    fn set_field(&mut self,x: usize, y: usize, f: Option<ChessFigure>){
-        self.board[y][x] = f;
-    }
-
     /**
      * Returns true if field is none
      */
-    pub fn empty_at(&self, x: usize, y: usize) -> bool{
+    pub fn empty_at(&self, x: usize, y: usize) -> bool {
         if let Option::None = self.get_figure(x, y) {
             true
-        }else {
+        } else {
             false
         }
     }
@@ -181,33 +154,26 @@ impl ChessBoard {
      * 1 if field with enemy figure
      * 2 if field is empty
      */
-    pub fn moveable(&self, x: usize,y:usize,fig: &ChessFigure) -> u8{
-        if let Some(fig2) = self.get_figure(x, y){
-            if fig2.color().equals(fig.color()){
+    pub fn moveable(&self, x: usize, y: usize, fig: &ChessFigure) -> u8 {
+        if let Some(fig2) = self.get_figure(x, y) {
+            if fig2.color().equals(fig.color()) {
                 0 //false
-            }else{
+            } else {
                 1 //true
             }
-        }else{
+        } else {
             2 //true
         }
     }
 
-    pub fn move_figure(&self,figure: &mut ChessFigure, x: usize, y: usize){
-        let start = figure.get_pos();
-        self.set_field(start.x(), start.y(), None);
-        figure.set_pos(x, y);
-        self.set_field(x, y, figure);
-
-    }
-
-    pub fn get_moves_for_side(&self) -> Vec<Move>{
+    pub fn get_moves_for_side(&self, c: Color) -> Vec<Move> {
         let mut moves = Vec::with_capacity(100);
-        for row in self.board{
+        for row in &self.board{
             for field in row{
-                if let Some(fig) = field{
-                    let mut fig_moves = fig.get_avaible_moves(self);
-                    moves.append(&mut fig_moves)
+                if let Some(f) = field{
+                    if f.color().equals(c){
+                        moves.append(&mut generate_move(f, self))
+                    }
                 }
             }
         }
@@ -216,57 +182,47 @@ impl ChessBoard {
 
     pub fn to_fen(&self) -> String {
         let mut fen = String::with_capacity(80);
-        for row in self.board {
+        for row in &self.board {
             let mut start = 0;
             for x in 0..8 {
-                let figure = row[x];
-                if figure.is_none() {
-                    start += 1;
-                } else {
+                let figure = &row[x];
+                if let Some(figure) = figure {
                     if start > 0 {
                         _ = fen.write_char(char::from_digit(start, 10).unwrap());
                         start = 0
                     }
-                    _ = fen.write_char(figure.unwrap().fen());
+                    _ = fen.write_char(figure.fen());
+                } else {
+                    start += 1;
                 }
             }
 
             if start > 0 {
                 _ = fen.write_char(char::from_digit(start, 10).unwrap());
             }
-            _=fen.write_char('/');
+            _ = fen.write_char('/');
         }
         let mut fen_chars = fen.chars();
         fen_chars.next_back();
         fen = fen_chars.as_str().to_string();
-        _=fen.write_str(format!(" {} ",self.on_turn.to_fen()).as_str());
-        _=fen.write_str(self.castle.to_fen().as_str());
-        _=fen.write_str(format!(" - 0 {}",self.turns).as_str());
+        _ = fen.write_str(format!(" {} ", self.on_turn.to_fen()).as_str());
+        _ = fen.write_str(self.castle.to_fen().as_str());
+        _ = fen.write_str(format!(" - 0 {}", self.turns).as_str());
         fen
     }
 
-    pub fn as_str(&self) -> String{
+    pub fn as_str(&self) -> String {
         let mut res = String::new();
-        for row in self.board{
-            for cell in row{
-                if let Some(f) = cell{
-                    _=res.write_char(f.fen());
-                }else{
-                    _=res.write_char('°');
+        for row in &self.board {
+            for cell in row {
+                if let Some(f) = cell {
+                    _ = res.write_char(f.fen());
+                } else {
+                    _ = res.write_char('°');
                 }
             }
-            _=res.write_char('\n')
+            _ = res.write_char('\n')
         }
         return res;
     }
-
-
-}
-
-
-
-#[test]
-fn test_fen() {
-    let b = ChessBoard::from_fen("");
-    assert!(b.is_err());
 }

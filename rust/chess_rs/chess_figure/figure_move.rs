@@ -1,5 +1,5 @@
 use crate::{
-    chess_board::{ChessBoard, FenBuilder},
+    chess_board::{ChessBoard},
     color::Color,
 };
 
@@ -74,39 +74,40 @@ impl Move {
     }
 
     pub fn make_move(&self, board: &mut ChessBoard) -> UndoMove{
+        let b = board.board();
         let s = self.start;
         let t = self.target;
-        let mut fig = board.get_figure(s.x(), s.y()).unwrap();
-        let fig_cpy = fig.clone();
-        board.set_field(s.x(), s.y(), None);
-        fig.set_pos(t.x(), t.y());
-        fig.flag_moved();
+        let target_fig_before = b[t.y()][t.x()].clone();
+        let start_fig_before = b[s.y()][s.x()].clone().unwrap();
         
-        let target = board.get_figure(t.x(), t.y());
-        board.set_field(t.x(), t.y(), Some(fig));
+        let mut start_fig = start_fig_before.clone();
+        start_fig.already_moved = true;
+        start_fig.pos = t;
+        //Start position is none;
+        b[s.y()][s.x()] = None; 
+
+        //Target position is start figure;
+        b[t.y()][t.x()] = Some(start_fig);
         UndoMove{
-            start: fig_cpy,
-            target,
+            start_fig_before: start_fig_before,
+            target_fig_before: target_fig_before,
             target_point: t
         }
-        // board.move_figure(t.x(), t.y(), f);
     }
 }
 
 pub struct UndoMove{
-    start: ChessFigure,
-    target: Option<ChessFigure>,
+    start_fig_before: ChessFigure,
+    target_fig_before: Option<ChessFigure>,
     target_point: Point
 }
 
 impl UndoMove{
-    pub fn undo(&self,board: &mut ChessBoard){
-        let s = &self.start;
-        let sp = s.pos;
-        let t = &self.target;
-        let tp = self.target_point;
-        board.set_field(sp.x(), sp.y(), Some(s.clone()));
-        board.set_field(tp.x(), tp.y(), t.clone());
+    pub fn undo(self,board: &mut ChessBoard){
+        let start_fig = self.start_fig_before;
+        let spos = start_fig.pos;
+        board.board()[spos.y()][spos.x()] = Some(start_fig);
+        board.board()[self.target_point.y()][self.target_point.x()] = self.target_fig_before;
     }
 }
 
@@ -150,7 +151,7 @@ fn pawn(fig: &ChessFigure, board: &ChessBoard) -> Vec<Move> {
     } else {
         1
     };
-    let pos = fig.pos;
+    let pos = fig.pos();
     let y = pos.y_raw();
     let y_one = y + move_direction;
     let x = pos.x as usize;
@@ -203,7 +204,7 @@ fn knight(fig: &ChessFigure, board: &ChessBoard) -> Vec<Move> {
     ];
     let mut moves: Vec<Move> = Vec::with_capacity(8);
     for (x, y) in KNIGHT_DELTAS {
-        let pos = fig.get_pos();
+        let pos = fig.pos();
         let x = pos.x + x;
         let y = pos.y + y;
         if !in_bounds(x) || !in_bounds(y) {
@@ -220,7 +221,7 @@ fn knight(fig: &ChessFigure, board: &ChessBoard) -> Vec<Move> {
 
 fn rook(fig: &ChessFigure, board: &ChessBoard) -> Vec<Move> {
     let mut moves: Vec<Move> = Vec::with_capacity(7 + 8);
-    let pos = fig.pos;
+    let pos = fig.pos();
     let y = pos.y;
     let x = pos.x;
     debug_assert!(in_bounds(x));
@@ -293,7 +294,7 @@ fn rook(fig: &ChessFigure, board: &ChessBoard) -> Vec<Move> {
 
 fn bishop(fig: &ChessFigure, board: &ChessBoard) -> Vec<Move> {
     let mut moves: Vec<Move> = Vec::with_capacity(7 + 8);
-    let pos = fig.pos;
+    let pos = fig.pos();
     let y = pos.y;
     let x = pos.x;
     //RIGHT DOWN
@@ -404,7 +405,7 @@ fn king(fig: &ChessFigure, board: &ChessBoard) -> Vec<Move> {
     ];
 
     let mut moves: Vec<Move> = Vec::with_capacity(10);
-    let p = fig.pos;
+    let p = fig.pos();
 
     for (x,y) in KING_DELTAS{
         let x = p.x+x;
